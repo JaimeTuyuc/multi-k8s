@@ -10,7 +10,7 @@ function App() {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <Link className='link_style' to="/">Home</Link>
+          <Link className='link_style' to="/">Updated</Link>
           <Link className='link_style' to="/otherpage">Other Page</Link>
         </header>
         <div className='container_app'>

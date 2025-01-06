@@ -14,6 +14,7 @@ function App() {
           <Link className='link_style' to="/otherpage">Other Page</Link>
         </header>
         <div className='container_app'>
+          <h2>Please enter a number between 1 - 50</h2>
           <Routes>
             <Route exact path="/" element={<Fib />} /> 
             <Route path="/otherpage" element={<OtherPage />} />

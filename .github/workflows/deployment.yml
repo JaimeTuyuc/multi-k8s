@@ -97,49 +97,49 @@ jobs:
           
   k8s-deployment:
     runs-on: ubuntu-latest
-    needs: [test-app, build-push-images]
+    needs: [test-app]
     environment:
       name: prod
     steps:
-      - name: Set Service Key
-        uses: 'google-github-actions/auth@v0'
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v1 # Use the latest version of the auth action
         with:
           credentials_json: '${{ secrets.GKE_SA_KEY }}'
 
-      - name: Set Project
-        uses: google-github-actions/setup-gcloud@v0
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1 # Use the latest version
         with:
           project_id: k8s-project-course
+          # export_default_credentials: true # Ensures credentials are available for subsequent steps
 
-      - name: Auth
-        run: |-
-          gcloud --quiet auth configure-docker
+      - name: Configure Docker Authentication
+        run: gcloud auth configure-docker --quiet
 
-      - name: Get Credentials
-        uses: google-github-actions/get-gke-credentials@v0
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v1 # Updated to v1
         with:
           cluster_name: multi-cluster-k8s-course
           location: us-central1-f
 
-      - name: Build
+      - name: Build Docker Images
         run: |-
-          docker build -t jaimetuyuc7/multi-client-k8s-gh:latest -t jaimetuyuc7/multi-client-k8s-gh:${{ env.SHA }} -f ./client/Dockerfile ./client
-          docker build -t jaimetuyuc7/multi-server-k8s-gh:latest -t jaimetuyuc7/multi-server-k8s-gh:${{ env.SHA }} -f ./server/Dockerfile ./server
-          docker build -t jaimetuyuc7/multi-worker-k8s-gh:latest -t jaimetuyuc7/multi-worker-k8s-gh:${{ env.SHA }} -f ./worker/Dockerfile ./worker
+          docker build -t jaimetuyuc7/multi-client-k8s-gh:latest -t jaimetuyuc7/multi-client-k8s-gh:${{ github.sha }} -f ./client/Dockerfile ./client
+          docker build -t jaimetuyuc7/multi-server-k8s-gh:latest -t jaimetuyuc7/multi-server-k8s-gh:${{ github.sha }} -f ./server/Dockerfile ./server
+          docker build -t jaimetuyuc7/multi-worker-k8s-gh:latest -t jaimetuyuc7/multi-worker-k8s-gh:${{ github.sha }} -f ./worker/Dockerfile ./worker
 
-      - name: Push
+      - name: Push Docker Images
         run: |-
           docker push jaimetuyuc7/multi-client-k8s-gh:latest
           docker push jaimetuyuc7/multi-server-k8s-gh:latest
           docker push jaimetuyuc7/multi-worker-k8s-gh:latest
 
-          docker push jaimetuyuc7/multi-client-k8s-gh:${{ env.SHA }}
-          docker push jaimetuyuc7/multi-server-k8s-gh:${{ env.SHA }}
-          docker push jaimetuyuc7/multi-worker-k8s-gh:${{ env.SHA }}
+          docker push jaimetuyuc7/multi-client-k8s-gh:${{ github.sha }}
+          docker push jaimetuyuc7/multi-server-k8s-gh:${{ github.sha }}
+          docker push jaimetuyuc7/multi-worker-k8s-gh:${{ github.sha }}
 
-      - name: Apply
+      - name: Apply Kubernetes Configurations
         run: |-
           kubectl apply -f k8s
-          kubectl set image deployments/server-deployment server=jaimetuyuc7/multi-server-k8s-gh:${{ env.SHA }}
-          kubectl set image deployments/client-deployment client=jaimetuyuc7/multi-client-k8s-gh:${{ env.SHA }}
-          kubectl set image deployments/worker-deployment worker=jaimetuyuc7/multi-worker-k8s-gh:${{ env.SHA }}
+          kubectl set image deployments/server-deployment server=jaimetuyuc7/multi-server-k8s-gh:${{ github.sha }}
+          kubectl set image deployments/client-deployment client=jaimetuyuc7/multi-client-k8s-gh:${{ github.sha }}
+          kubectl set image deployments/worker-deployment worker=jaimetuyuc7/multi-worker-k8s-gh:${{ github.sha }}
